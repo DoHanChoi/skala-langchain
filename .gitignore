@@ -10,6 +10,7 @@ htmlcov/
 *.log
 dist/
 build/
+tmp/
 *.egg-info/
 postgres-data/
 rolelens-*.zip

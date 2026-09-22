@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RoleLens 서비스 보고서</title>
+  <style>{{ css | safe }}</style>
+</head>
+<body>
+  <section class="page cover">
+    <div class="cover-main">
+      <p class="eyebrow">LANGCHAIN · POSTGRESQL · GRADIO</p>
+      <h1>RoleLens</h1>
+      <div class="cover-subtitle">직무 관점형<br>자연어 데이터 분석 도우미</div>
+      <p class="cover-description">기획자·마케터·PM의 자연어 질문을 안전한 SQL 실행, 핵심 요약과 시각화로 연결하는 LangChain 기반 AI 도우미</p>
+    </div>
+    <div>
+      <p><span class="mock-badge">SEED 기반 MOCK DATA 데모</span></p>
+      <div class="cover-meta">
+        <div><div class="meta-label">보고서 성격</div><div class="meta-value">프로젝트 코드·실행 결과 검증 보고서</div></div>
+        <div><div class="meta-label">작성일</div><div class="meta-value">2026-09-22</div></div>
+        <div><div class="meta-label">데이터 기준일</div><div class="meta-value">{{ data_as_of }}</div></div>
+        <div><div class="meta-label">실행 환경</div><div class="meta-value">Python 3.11 · PostgreSQL 16 · Gradio 6</div></div>
+      </div>
+    </div>
+    <div class="running">RoleLens 서비스 보고서</div><div class="page-no">01 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">01 · PROBLEM & PRODUCT</p>
+    <h2>SQL 작성을 넘어, 직무의 관점으로 해석까지</h2>
+    <p class="lede">RoleLens의 타깃은 데이터를 매일 사용하지만 SQL이 본업은 아닌 기획자, 마케터, PM이다. 현재의 어려움은 쿼리 작성 자체보다 질문을 지표·기간·비교 기준으로 바꾸고, 결과를 업무 언어로 다시 해석하는 연속 과정에 있다.</p>
+    <div class="grid-3">
+      <div class="card"><h3><span class="dot"></span>기획자</h3><p>KPI 현재값, 목표 대비, 이전 기간, 격차 구성을 우선한다.</p></div>
+      <div class="card accented"><h3><span class="dot coral"></span>마케터</h3><p>고객 세그먼트, 유입 채널·캠페인, 매출·전환, 기간 비교를 우선한다.</p></div>
+      <div class="card"><h3><span class="dot blue"></span>PM</h3><p>가입 후 활성화, 핵심 기능, 퍼널·기기별 행동 차이를 우선한다.</p></div>
+    </div>
+    <div class="spacer-4"></div>
+    <div class="flowline">
+      <div class="flow-step"><strong>요청 해석</strong><span>업무 언어를 지표와 필터로 변환</span></div>
+      <div class="flow-step"><strong>SQL 작성</strong><span>스키마·조인·기간 규칙 적용</span></div>
+      <div class="flow-step"><strong>결과 확인</strong><span>표를 보고 수치와 추이 계산</span></div>
+      <div class="flow-step"><strong>해석</strong><span>관찰과 인과를 구분해 설명</span></div>
+      <div class="flow-step highlight"><strong>Insight Card</strong><span>핵심 답, 차트, 근거, 후속 질문</span></div>
+    </div>
+    <h3>단순 Text-to-SQL과의 차이</h3>
+    <table>
+      <thead><tr><th>구분</th><th>단순 자연어-to-SQL</th><th>RoleLens</th></tr></thead>
+      <tbody>
+        <tr><td>출력</td><td>쿼리 또는 결과 테이블</td><td>구조화 계획, 검증된 SQL, 계산 지표, 차트, Insight Card</td></tr>
+        <tr><td>직무 관점</td><td>보통 없음</td><td>`RunnableBranch`로 3개 페르소나를 명시적으로 분기</td></tr>
+        <tr><td>모호함</td><td>임의 가정 가능</td><td>결과를 크게 바꾸는 모호함은 SQL 전 확인 질문으로 중단</td></tr>
+        <tr><td>안전·근거</td><td>구현에 따라 다름</td><td>AST 검사, allowlist, read-only DB, row limit, timeout, SQL 공개</td></tr>
+      </tbody>
+    </table>
+    <div class="source-note">근거: README.md, docs/01_PROJECT_PROPOSAL.md, docs/02_PRD.md, 실제 `src/rolelens` 구현</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">02 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">02 · WHY LLM & LANGCHAIN</p>
+    <h2>LLM은 의미를 연결하고, 코드와 DB가 숫자를 보장한다</h2>
+    <div class="split-6040">
+      <div>
+        <h3>LLM이 필요한 지점</h3>
+        <ul>
+          <li>“최근”, “신규 고객”, “성과”처럼 문맥에 따라 정의가 달라지는 표현을 기간·지표·대상으로 구조화한다.</li>
+          <li>같은 질문을 기획자에게는 목표 격차, 마케터에게는 채널·세그먼트, PM에게는 활성화·퍼널 관점으로 재구성한다.</li>
+          <li>질문의 개념을 PostgreSQL 테이블, 컬럼, 조인, 지표 정의에 연결한다.</li>
+          <li>실행 결과와 Python 계산을 의사결정 언어로 요약하되, 근거 없는 인과·예측을 제한한다.</li>
+        </ul>
+        <div class="callout"><p><strong>단순 규칙의 한계</strong></p><p>질문 표현 × 기간 표현 × 지표 × 스키마 조합을 미리 열거하면 유지보수 비용이 빠르게 커진다. RoleLens는 LLM을 자유 실행기가 아니라 ‘제한된 의미 변환기’로 사용한다.</p></div>
+      </div>
+      <div>
+        <h3>LLM에게 맡기지 않는 일</h3>
+        <div class="card">
+          <ul class="checklist compact">
+            <li>SQL 허용 여부 - sqlglot AST</li>
+            <li>테이블 범위 - 코드 allowlist</li>
+            <li>읽기 권한 - PostgreSQL role</li>
+            <li>LIMIT 100 - AST 재작성</li>
+            <li>statement timeout 10,000ms</li>
+            <li>증감률·달성률·활성화율 - Python</li>
+            <li>ChartSpec 컬럼·타입 검증</li>
+            <li>최종 데이터 접근 권한</li>
+          </ul>
+        </div>
+        <h3>LangChain의 실제 역할</h3>
+        <table class="tight-table">
+          <tr><th>구현</th><th>역할</th></tr>
+          <tr><td>`ChatPromptTemplate`</td><td>공통·페르소나·질문 컨텍스트 조립</td></tr>
+          <tr><td>`RunnableBranch`</td><td>사용자가 선택한 3개 직무 체인 분기</td></tr>
+          <tr><td>Structured Output</td><td>`AnalysisPlan`, SQL 초안, 서술 계약</td></tr>
+          <tr><td>Custom Tools</td><td>테이블·스키마·읽기 전용 SQL 경계</td></tr>
+        </table>
+        <p class="small">현재 `LLMSQLAgent`는 자율 `create_agent`를 돌리지 않고, 코드가 `list_tables → inspect_schema → execute_readonly_sql`의 순서와 재시도 상한을 통제한다.</p>
+      </div>
+    </div>
+    <div class="source-note">근거: docs/03_TECHNICAL_DESIGN.md, docs/05_PROMPT_AND_CHAIN_SPEC.md, src/rolelens/agents/*.py, src/rolelens/domain/metrics.py</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">03 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">03 · END-TO-END FLOW</p>
+    <h2>질문에서 Insight Card까지</h2>
+    <figure class="figure diagram">
+      <img src="{{ analysis_flow_uri }}" alt="RoleLens 분석 처리 흐름 다이어그램">
+      <figcaption class="caption"><strong>그림 1.</strong> 페르소나와 LLM은 질문의 의미를 구조화하지만, SQL 허용 여부와 수치 계산은 결정론적 로직이 통제한다.</figcaption>
+    </figure>
+    <table class="tight-table">
+      <thead><tr><th>단계</th><th>실제 코드</th><th>출력 / 보장</th></tr></thead>
+      <tbody>
+        <tr><td>페르소나 계획</td><td>`agents/planner.py`</td><td>`RunnableBranch` + Pydantic `AnalysisPlan`; 표준 질문은 결과 계약으로 정규화</td></tr>
+        <tr><td>확인 질문</td><td>`InsightService.run()`</td><td>`clarification_needed=True`이면 SQL tool 호출 0회로 종료</td></tr>
+        <tr><td>SQL 생성·수정</td><td>`agents/sql_agent.py`</td><td>스키마 확인 후 초안 생성, 최대 2회 수정; TS-01~03은 reference 결과 대조</td></tr>
+        <tr><td>안전 실행</td><td>`db/safety.py`, `repository.py`</td><td>단일 SELECT, 6개 테이블, 행 제한, timeout, read-only 계정</td></tr>
+        <tr><td>후처리</td><td>`domain/metrics.py`</td><td>달성률·증감률·활성화율을 Python으로 계산</td></tr>
+        <tr><td>시각화</td><td>`chart_planner.py`, `renderer.py`</td><td>검증된 `ChartSpec`만 matplotlib로 렌더링</td></tr>
+        <tr><td>설명</td><td>`insight_writer.py`</td><td>근거 숫자 집합을 벗어나거나 미검증 인과가 있으면 규칙 기반 서술로 fallback</td></tr>
+      </tbody>
+    </table>
+    <div class="source-note">그림: diagram-design 규칙으로 생성·검증. 근거: src/rolelens/services/insight_service.py 및 하위 모듈</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">04 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">04 · DATA & SQL SAFETY</p>
+    <h2>PostgreSQL Mock 데이터에 다중 안전 경계를 적용한다</h2>
+    <div class="metric-row">
+      <div class="metric"><div class="metric-value">6</div><div class="metric-label">analytics 허용 테이블</div></div>
+      <div class="metric coral"><div class="metric-value">100</div><div class="metric-label">기본 최대 반환 행</div></div>
+      <div class="metric"><div class="metric-value">10s</div><div class="metric-label">statement timeout</div></div>
+    </div>
+    <figure class="figure diagram">
+      <img src="{{ sql_safety_uri }}" alt="RoleLens SQL 안전 아키텍처 다이어그램">
+      <figcaption class="caption"><strong>그림 2.</strong> 프롬프트 제약, AST 검사, 코드 allowlist, DB 권한이 서로 다른 위치에서 같은 읽기 전용 정책을 보강한다.</figcaption>
+    </figure>
+    <div class="grid-2">
+      <div>
+        <h3>Seed 42 Mock 커머스 데이터</h3>
+        <table class="tight-table">
+          <tr><td>users</td><td class="mono">1,200</td><td>가입일·연령·유입·기기</td></tr>
+          <tr><td>user_events</td><td class="mono">5,203</td><td>행동·퍼널·feature_used</td></tr>
+          <tr><td>products</td><td class="mono">25</td><td>5개 카테고리</td></tr>
+          <tr><td>campaigns</td><td class="mono">84</td><td>채널·기간·집행비</td></tr>
+          <tr><td>orders</td><td class="mono">3,907</td><td>completed 3,606 / 기타 301</td></tr>
+          <tr><td>monthly_targets</td><td class="mono">42</td><td>월별 매출·신규고객 목표</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3>차단 정책</h3>
+        <ul class="compact">
+          <li>단일 `SELECT` 또는 `WITH ... SELECT`만 허용</li>
+          <li>`SELECT *`, DDL/DML, COPY, 다중 statement, lock 차단</li>
+          <li>`analytics` 외 스키마와 시스템 카탈로그 차단</li>
+          <li>`rolelens_agent_ro`는 SELECT 권한만 보유</li>
+          <li>owner/seed 경로와 에이전트 경로 분리</li>
+        </ul>
+      </div>
+    </div>
+    <div class="source-note">실제 검증: migration `20260921_0001`, reports/evidence/environment-summary.txt, sql-safety-summary.txt</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">05 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">05 · EXECUTION RESULT / MARKETER</p>
+    <h2>20대 카테고리 매출: beauty가 현재 3개월 1위</h2>
+    <div class="metric-row">
+      <div class="metric coral"><div class="metric-value">9.22M</div><div class="metric-label">beauty 현재 기간 매출 (KRW)</div></div>
+      <div class="metric"><div class="metric-value">+1,729.51%</div><div class="metric-label">beauty 직전 3개월 대비</div></div>
+      <div class="metric"><div class="metric-value">10</div><div class="metric-label">5 카테고리 × 2 기간 결과 행</div></div>
+    </div>
+    <div class="split-4555">
+      <div>
+        <div class="card accented">
+          <h3>사용자 입력</h3>
+          <p>“최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.”</p>
+          <p class="small">페르소나: marketer · 지표: completed 주문 매출 · 필터: 20 ≤ age &lt; 30</p>
+        </div>
+        <h3>AnalysisPlan</h3>
+        <ul class="compact">
+          <li>차원: `category`, `period`</li>
+          <li>비교: `current` vs `previous`</li>
+          <li>기준일: 최대 `order_date` = 2026-09-15</li>
+          <li>사용 테이블: users, orders, products</li>
+        </ul>
+        <h3>핵심 SQL 조건</h3>
+        <pre>WHERE o.status = 'completed'
+  AND u.age &gt;= 20 AND u.age &lt; 30
+  AND o.order_date BETWEEN previous_start AND max_date
+GROUP BY p.category, period
+LIMIT 100</pre>
+      </div>
+      <div>
+        <figure class="figure chart">
+          <img src="{{ marketer_chart_uri }}" alt="20대 카테고리별 매출 비교 차트">
+          <figcaption class="caption"><strong>차트.</strong> 실제 QueryArtifact를 검증된 ChartSpec으로 렌더링한 결과.</figcaption>
+        </figure>
+      </div>
+    </div>
+    <figure class="figure screen">
+      <img src="{{ marketer_screen_uri }}" alt="Gradio 마케터 시나리오 실행 화면">
+      <figcaption class="caption"><strong>캡처 1.</strong> 실제 Gradio UI에서 실행한 마케터 시나리오. 캡처는 실제 PostgreSQL과 reference SQL을 쓰는 결정론적 인수 모드이며 모형 화면이 아니다.</figcaption>
+    </figure>
+    <div class="source-note">실제 결과: reports/evidence/scenario-marketer.json · reports/assets/screenshots/02-marketer-result.png</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">06 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">06 · PERSONA & CLARIFICATION</p>
+    <h2>같은 질문이어도 보는 차원과 표현 방식이 달라진다</h2>
+    <p class="lede">공통 질문 “최근 신규 고객 수가 어떻게 변했어?”에서 지표 정의는 ‘첫 completed 주문일’로 고정되지만, 추가 차원과 비교 관점은 페르소나에 따라 달라진다.</p>
+    <table>
+      <thead><tr><th>페르소나</th><th>중요 차원</th><th>비교·표현</th><th>확인된 결과 형태</th></tr></thead>
+      <tbody>
+        <tr><td>기획자</td><td>월</td><td>목표·이전 기간 격차</td><td>월별 신규 고객 vs 목표, grouped bar</td></tr>
+        <tr><td>마케터</td><td>월 + 유입 채널</td><td>채널별 직전 기간</td><td>월·채널별 신규 고객, stacked bar</td></tr>
+        <tr><td>PM</td><td>기기 + 활성화 단계</td><td>활성화·구매 구간</td><td>기기별 신규·활성 고객, bar</td></tr>
+      </tbody>
+    </table>
+    <div class="grid-2">
+      <figure class="figure screen tall">
+        <img src="{{ persona_compare_uri }}" alt="기획자와 마케터의 공통 질문 결과 비교">
+        <figcaption class="caption"><strong>캡처 2.</strong> 동일한 질문을 다른 페르소나로 실행한 실제 UI 출력 비교.</figcaption>
+      </figure>
+      <div>
+        <figure class="figure screen">
+          <img src="{{ clarification_uri }}" alt="모호한 질문에 대한 Gradio 확인 질문 화면">
+          <figcaption class="caption"><strong>캡처 3.</strong> “요즘”의 기간과 “잘 나가는”의 기준이 모호하여 SQL 실행 전에 확인한다.</figcaption>
+        </figure>
+        <div class="card accented">
+          <h3>실제 clarification</h3>
+          <p>“최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?”</p>
+          <p class="small">trace에서 `sql: skipped`, `tools_called: []`를 확인했다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="source-note">근거: scenario-persona-comparison.json, scenario-ambiguous.json, tests/unit/test_planner.py</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">07 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">07 · QUALITY & VERIFICATION</p>
+    <h2>코드, DB, 기준 SQL, UI를 같은 seed로 재검증했다</h2>
+    <div class="metric-row">
+      <div class="metric coral"><div class="metric-value">76 / 76</div><div class="metric-label">pytest 통과 · 13.71초</div></div>
+      <div class="metric"><div class="metric-value">3 / 3</div><div class="metric-label">표준 시나리오 기준 SQL 일치</div></div>
+      <div class="metric"><div class="metric-value">100%</div><div class="metric-label">검증한 위험 SQL 차단 / 제한</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3>이 보고서 작성 시 다시 실행한 항목</h3>
+        <div class="status-line"><strong>PostgreSQL</strong><span class="positive">healthy</span><span>postgres:16-alpine / 55432</span></div>
+        <div class="status-line"><strong>Migration</strong><span class="positive">head</span><span>20260921_0001</span></div>
+        <div class="status-line"><strong>Seed</strong><span class="positive">verified</span><span>6개 테이블, 행 수 일치</span></div>
+        <div class="status-line"><strong>Unit·Integration·E2E</strong><span class="positive">passed</span><span>76 tests</span></div>
+        <div class="status-line"><strong>Read-only</strong><span class="positive">blocked</span><span>DELETE / CREATE DB 권한 거부</span></div>
+        <div class="status-line"><strong>Row cap</strong><span class="positive">applied</span><span>LIMIT 100</span></div>
+        <div class="status-line"><strong>Gradio capture</strong><span class="positive">captured</span><span>1440×1000, DPR 2, light</span></div>
+      </div>
+      <div>
+        <h3>기준 SQL 핵심 수치</h3>
+        <table class="tight-table">
+          <tr><th>시나리오</th><th>실제 검증 값</th></tr>
+          <tr><td>기획자 분기 매출</td><td>86,189,441.91원 / 목표 90,067,966.80원 / 95.69%</td></tr>
+          <tr><td>마케터 20대 beauty</td><td>9,224,188.55원</td></tr>
+          <tr><td>PM 7일 활성화</td><td>mobile 43.06% · desktop 61.70% · tablet 66.67%</td></tr>
+        </table>
+        <h3>Live LLM smoke test</h3>
+        <p>`gpt-4o-mini`로 마케터 표준 질문을 실행해 success를 확인했다. 생성 SQL은 2회 수정 후 기준 결과와 맞지 않아 3번째 시도에 검토된 reference SQL 결과로 fallback했다. 모호한 질문은 live 경로에서도 clarification이었다.</p>
+        <p class="small">이 결과는 외부 API 계정·지연·응답 변동성의 제약을 받는다. 자동 테스트는 fake/structured stub과 검토된 reference SQL로 LLM 경계를 재현한다.</p>
+      </div>
+    </div>
+    <div class="spacer-4"></div>
+    <h3>재현 근거 구조</h3>
+    <pre class="code-light">reports/evidence/
+├── environment-summary.txt      # 버전·migration·seed·기준일
+├── test-summary.txt             # pytest 명령·종료 코드·결과
+├── sql-safety-summary.txt       # AST 차단·DB 권한·row cap
+├── scenario-*.json              # 계획·SQL·행·차트·Insight·trace
+└── live-model-summary.json      # 비밀값 없는 live smoke 결과</pre>
+    <div class="source-note">검증 시점: 2026-09-22 · 방법: reports/collect_evidence.py, run_live_smoke.py, capture_report_assets.py</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">08 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">08 · LIMITS & NEXT</p>
+    <h2>현재 MVP의 달성 범위와 향후 확장을 구분한다</h2>
+    <div class="grid-2">
+      <div>
+        <h3>현재 한계</h3>
+        <ul>
+          <li>실제 기업 데이터가 아닌 seed 42 기반 Mock 데이터로, 의도한 학습 패턴을 포함한다.</li>
+          <li>6개 테이블의 제한된 커머스 도메인이며, 지표·스키마 변경 시 reference SQL과 테스트를 함께 갱신해야 한다.</li>
+          <li>모호한 업무 표현을 완전히 제거할 수 없으며, 확인 질문은 단일 요청 응답으로 종료된다.</li>
+          <li>LLM은 응답 지연·비용·비결정성이 있고, 표준 질문은 정확도를 위해 reference 결과 fallback을 사용한다.</li>
+          <li>단일 SQL 결과와 7개 차트 유형으로 범위가 제한되며 복잡한 다단계 분석은 다루지 않는다.</li>
+          <li>운영용 인증·사용자별 권한·멀티테넌시·지속 감사 로그·모니터링은 없다.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>향후 확장 후보 - 현재 미구현</h3>
+        <div class="card">
+          <p><span class="pill future">FUTURE</span></p>
+          <h3>RAG</h3>
+          <p>업무 용어집, KPI 정의, 스키마 설명, 검증된 질문-SQL 예시를 `SemanticContextProvider` 뒤에서 검색하는 후보다.</p>
+        </div>
+        <div class="card">
+          <p><span class="pill future">FUTURE</span></p>
+          <h3>LangGraph</h3>
+          <p>확인 질문 후 재개, 실패 유형별 재시도, 계획 승인, 여러 SQL 조합, 장기 상태가 필요할 때 검토한다.</p>
+        </div>
+        <div class="card">
+          <p><span class="pill future">FUTURE</span></p>
+          <h3>Vector DB</h3>
+          <p>의미 문서와 평가셋이 준비되고 키워드 검색의 한계가 검증된 후 pgvector 또는 외부 저장소를 고려한다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout"><p><strong>현재 상태</strong> - `pyproject.toml`, Docker Compose, 실행 경로에 RAG, LangGraph, Vector DB, pgvector는 포함되지 않았다. 위 항목은 모두 아키텍처 확장 후보이다.</p></div>
+    <div class="source-note">근거: docs/09_FUTURE_EXTENSION.md, pyproject.toml, docker-compose.yml, docs/10_IMPLEMENTATION_NOTES.md</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">09 / 10</div>
+  </section>
+
+  <section class="page">
+    <p class="eyebrow">09 · REPRODUCTION & CONCLUSION</p>
+    <h2>동일한 Mock 환경을 다시 만드는 최소 절차</h2>
+    <div class="split-6040">
+      <div>
+        <h3>서비스 실행</h3>
+        <pre>cp .env.example .env
+source .venv/bin/activate
+pip install -e ".[dev]"
+docker compose up -d --wait db
+alembic upgrade head
+python scripts/seed_mock_data.py --seed 42
+pytest
+python -m rolelens.ui.gradio_app</pre>
+        <h3>보고서 재빌드</h3>
+        <pre>pip install -e ".[dev,report]"
+python reports/collect_evidence.py
+python reports/capture_report_assets.py
+python reports/build_report.py</pre>
+        <p class="small">live LLM 실행은 `python reports/run_live_smoke.py`로 별도 수행한다. API 키 값은 로그·증거·보고서에 저장하지 않는다.</p>
+      </div>
+      <div>
+        <h3>필요 환경변수 - 이름만</h3>
+        <table class="tight-table">
+          <tr><td>`MODEL_PROVIDER`</td><td>현재 openai</td></tr>
+          <tr><td>`MODEL_ID`</td><td>기본 gpt-4o-mini</td></tr>
+          <tr><td>`MODEL_API_KEY` / `OPENAI_API_KEY`</td><td>live 모델 인증</td></tr>
+          <tr><td>`DATABASE_ADMIN_URL`</td><td>migration·seed</td></tr>
+          <tr><td>`DATABASE_READONLY_URL`</td><td>앱 SQL 조회</td></tr>
+          <tr><td>`RANDOM_SEED`</td><td>42</td></tr>
+          <tr><td>`DATA_AS_OF`</td><td>2026-09-15</td></tr>
+          <tr><td>`SQL_STATEMENT_TIMEOUT_MS`</td><td>10000</td></tr>
+          <tr><td>`MAX_QUERY_ROWS`</td><td>100</td></tr>
+        </table>
+        <h3>핵심 구조</h3>
+        <ul class="compact">
+          <li>`src/rolelens/` - 분석 파이프라인·DB·서비스·UI</li>
+          <li>`sql/reference/` - 표준 시나리오 기준 SQL</li>
+          <li>`migrations/`, `scripts/` - 스키마·Mock seed</li>
+          <li>`tests/` - unit·integration·E2E</li>
+          <li>`reports/` - 증거·캡처·SVG·PDF 버티컬</li>
+        </ul>
+      </div>
+    </div>
+    <div class="spacer-4"></div>
+    <div class="card accented">
+      <h3>결론</h3>
+      <p>RoleLens는 자연어를 SQL로 바꾸는 데서 멈추지 않고, 페르소나별 분석 계획, 안전한 조회, 결정론적 계산, 검증된 차트, 근거를 공개하는 Insight Card까지 하나의 서비스 경로로 연결했다. seed 기반 Mock 데이터와 제한된 도메인이라는 범위는 분명하지만, 코드·DB·테스트·실제 UI 캡처로 현재 달성 범위를 재현 가능하게 증명했다.</p>
+    </div>
+    <div class="spacer-4"></div>
+    <p class="small">본 보고서의 숫자와 화면은 `DATA_AS_OF=2026-09-15`, `RANDOM_SEED=42`를 사용한 현재 저장소의 실제 실행 결과다. 실제 기업 성과나 시장 현상으로 해석해서는 안 된다.</p>
+    <div class="source-note">실행 안내: README.md · 보고서 재현: reports/README.md · 최종 산출물: output/pdf/RoleLens_서비스보고서.pdf</div><div class="running">RoleLens 서비스 보고서</div><div class="page-no">10 / 10</div>
+  </section>
+</body>
+</html>

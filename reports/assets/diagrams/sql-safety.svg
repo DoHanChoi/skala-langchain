@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-labelledby="sql-safety-title sql-safety-desc">
+    <title id="sql-safety-title">RoleLens SQL 안전 구조</title>
+    <desc id="sql-safety-desc">Gradio UI의 질문이 InsightService, SQL AST 검사와 테이블 허용 목록, 읽기 전용 계정을 통과해 analytics 스키마로 실행되며 DDL, DML, 다중문, 시스템 조회는 경계 앞에서 차단되는 구조를 보여준다.</desc>
+    <defs>
+      <marker id="ss-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2E7D64"/></marker>
+      <marker id="ss-arrow-muted" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#68737D"/></marker>
+      <marker id="ss-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3A6EA5"/></marker>
+    </defs>
+    <rect width="1280" height="720" fill="#F7F4EE"/>
+
+    <!-- zones -->
+    <rect x="48" y="112" width="392" height="376" rx="8" fill="#FFFFFF" fill-opacity="0.48" stroke="#D9D6CF"/>
+    <rect x="464" y="112" width="272" height="496" rx="8" fill="#E56F45" fill-opacity="0.035" stroke="#E56F45" stroke-opacity="0.5" stroke-dasharray="4 4"/>
+    <rect x="760" y="112" width="472" height="376" rx="8" fill="#FFFFFF" fill-opacity="0.48" stroke="#D9D6CF"/>
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" font-size="12" font-weight="650">
+      <rect x="64" y="104" width="124" height="24" fill="#F7F4EE"/><text x="72" y="121" fill="#68737D">응용 경계</text>
+      <rect x="480" y="104" width="124" height="24" fill="#F7F4EE"/><text x="488" y="121" fill="#E56F45">정책 경계</text>
+      <rect x="776" y="104" width="124" height="24" fill="#F7F4EE"/><text x="784" y="121" fill="#68737D">데이터 경계</text>
+    </g>
+
+    <!-- approved path connectors before nodes -->
+    <line x1="216" y1="296" x2="264" y2="296" stroke="#2E7D64" stroke-width="2.2" marker-end="url(#ss-arrow)"/>
+    <line x1="416" y1="296" x2="500" y2="296" stroke="#2E7D64" stroke-width="2.2" marker-end="url(#ss-arrow)"/>
+    <line x1="700" y1="296" x2="792" y2="296" stroke="#2E7D64" stroke-width="2.2" marker-end="url(#ss-arrow)"/>
+    <line x1="944" y1="296" x2="1000" y2="296" stroke="#2E7D64" stroke-width="2.2" marker-end="url(#ss-arrow)"/>
+
+    <!-- trace path -->
+    <path d="M340 350 V420 Q340 428 348 428 H392" fill="none" stroke="#68737D" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ss-arrow-muted)"/>
+
+    <!-- owner path -->
+    <path d="M868 208 V180 Q868 172 876 172 H1076 Q1084 172 1084 180 V236" fill="none" stroke="#3A6EA5" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ss-arrow-link)"/>
+
+    <!-- blocked path stops at policy boundary -->
+    <line x1="468" y1="548" x2="532" y2="548" stroke="#E56F45" stroke-width="2" stroke-dasharray="6 4"/>
+    <line x1="548" y1="536" x2="548" y2="560" stroke="#E56F45" stroke-width="4"/>
+
+    <!-- nodes -->
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" text-anchor="middle">
+      <rect x="80" y="242" width="136" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="148" y="286" fill="#18222D" font-size="16" font-weight="650"><tspan x="148">Gradio UI</tspan><tspan x="148" dy="24" fill="#68737D" font-size="12">질문 · 페르소나</tspan></text>
+
+      <rect x="264" y="242" width="152" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="340" y="286" fill="#18222D" font-size="16" font-weight="650"><tspan x="340">InsightService</tspan><tspan x="340" dy="24" fill="#68737D" font-size="12">유일한 앱 진입점</tspan></text>
+
+      <rect x="500" y="222" width="200" height="148" rx="8" fill="#FBE8DF" stroke="#E56F45" stroke-width="2"/>
+      <text x="600" y="266" fill="#18222D" font-size="16" font-weight="650"><tspan x="600">SQL AST 검사</tspan><tspan x="600" dy="25">+ allowlist</tspan><tspan x="600" dy="23" fill="#68737D" font-size="12">SELECT · analytics 6개 테이블</tspan><tspan x="600" dy="20" fill="#68737D" font-size="12">LIMIT 100 · timeout 10s</tspan></text>
+
+      <rect x="792" y="242" width="152" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="868" y="286" fill="#18222D" font-size="16" font-weight="650"><tspan x="868">읽기 전용 계정</tspan><tspan x="868" dy="24" fill="#68737D" font-size="12">rolelens_agent_ro</tspan></text>
+
+      <rect x="1000" y="236" width="184" height="120" rx="8" fill="#18222D" stroke="#18222D"/>
+      <text x="1092" y="280" fill="#FFFFFF" font-size="16" font-weight="650"><tspan x="1092">PostgreSQL 16</tspan><tspan x="1092" dy="24">analytics 스키마</tspan><tspan x="1092" dy="22" fill="#D9D6CF" font-size="12">seed 기반 Mock 데이터</tspan></text>
+
+      <rect x="392" y="398" width="176" height="60" rx="8" fill="#FFFFFF" stroke="#68737D" stroke-dasharray="4 3"/>
+      <text x="480" y="423" fill="#18222D" font-size="14" font-weight="650"><tspan x="480">요청 단위 trace</tspan><tspan x="480" dy="20" fill="#68737D" font-size="12">단계 · 시도 횟수 · 소요 시간</tspan></text>
+
+      <rect x="284" y="500" width="184" height="96" rx="8" fill="#FFFFFF" stroke="#E56F45"/>
+      <text x="376" y="530" fill="#18222D" font-size="14" font-weight="650"><tspan x="376">위험 쿼리</tspan><tspan x="376" dy="22" fill="#68737D" font-size="12">DDL · DML · 다중문</tspan><tspan x="376" dy="20" fill="#68737D" font-size="12">SELECT * · 시스템 스키마</tspan></text>
+
+      <rect x="792" y="132" width="152" height="76" rx="8" fill="#FFFFFF" stroke="#3A6EA5" stroke-dasharray="4 3"/>
+      <text x="868" y="162" fill="#18222D" font-size="14" font-weight="650"><tspan x="868">owner / seed</tspan><tspan x="868" dy="22" fill="#68737D" font-size="12">마이그레이션 전용</tspan></text>
+    </g>
+
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" font-size="12" font-weight="650">
+      <rect x="540" y="182" width="120" height="26" rx="4" fill="#FFFFFF"/><text x="600" y="200" text-anchor="middle" fill="#2E7D64">허용 경로</text>
+      <rect x="558" y="532" width="92" height="32" rx="4" fill="#FBE8DF"/><text x="604" y="553" text-anchor="middle" fill="#E56F45">차단</text>
+    </g>
+
+    <line x1="52" y1="640" x2="1228" y2="640" stroke="#D9D6CF"/>
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" font-size="12" fill="#68737D">
+      <text x="52" y="672">실선: 앱이 사용하는 유일한 조회 경로</text>
+      <text x="384" y="672">점선: 관리 또는 trace 경로</text>
+      <text x="716" y="672">멈춤 표시: DB 진입 전 차단</text>
+    </g>
+  </svg>

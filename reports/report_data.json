@@ -1,0 +1,823 @@
+{
+  "data_as_of": "2026-09-15",
+  "scenarios": {
+    "marketer": {
+      "mode": "offline_acceptance",
+      "persona": "marketer",
+      "question": "최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.",
+      "status": "success",
+      "analysis_plan": {
+        "persona": "marketer",
+        "interpreted_question": "최근 3개월과 직전 3개월의 20대 카테고리별 completed 매출 비교",
+        "metric": "revenue",
+        "dimensions": [
+          "category",
+          "period"
+        ],
+        "filters": [
+          "20 <= age < 30",
+          "status = completed"
+        ],
+        "date_range": "latest 3 calendar months and prior 3 complete months from max order_date",
+        "comparison": "previous_3_months",
+        "chart_hint": "grouped_bar",
+        "clarification_needed": false,
+        "clarification_question": null
+      },
+      "user_message": null,
+      "insight": {
+        "persona": "marketer",
+        "question": "최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.",
+        "headline": "최근 3개월 20대 매출은 beauty 카테고리가 9,224,189원으로 가장 큽니다.",
+        "key_findings": [
+          "현재 기간 매출 1위 카테고리는 beauty입니다.",
+          "직전 기간 대비 증가율은 beauty가 1,729.51%로 가장 큽니다."
+        ],
+        "chart_spec": {
+          "chart_type": "grouped_bar",
+          "x": "category",
+          "y": "revenue",
+          "series": "period",
+          "title": "20대 카테고리별 매출 기간 비교",
+          "x_label": "카테고리",
+          "y_label": "매출(KRW)",
+          "sort": "none",
+          "top_n": 10
+        },
+        "applied_context": [
+          "latest 3 calendar months and prior 3 complete months from max order_date",
+          "20 <= age < 30",
+          "completed 상태 주문의 sales_amount 합계(취소·환불 제외)"
+        ],
+        "next_analysis_question": "beauty 매출 증가가 특정 채널이나 캠페인에 집중됐는지 보시겠어요?",
+        "caveats": [
+          "Mock 데이터의 관찰 차이며 인과를 의미하지 않습니다."
+        ],
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+        "source_tables": [
+          "orders",
+          "products",
+          "users"
+        ],
+        "row_count": 10,
+        "data_as_of": "2026-09-15"
+      },
+      "query": {
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+        "columns": [
+          "category",
+          "period",
+          "revenue"
+        ],
+        "rows": [
+          {
+            "category": "beauty",
+            "period": "current",
+            "revenue": "9224188.55"
+          },
+          {
+            "category": "beauty",
+            "period": "previous",
+            "revenue": "504190.14"
+          },
+          {
+            "category": "digital",
+            "period": "current",
+            "revenue": "7579629.28"
+          },
+          {
+            "category": "digital",
+            "period": "previous",
+            "revenue": "3310234.51"
+          },
+          {
+            "category": "fashion",
+            "period": "current",
+            "revenue": "6646278.87"
+          },
+          {
+            "category": "fashion",
+            "period": "previous",
+            "revenue": "2041277.26"
+          },
+          {
+            "category": "food",
+            "period": "current",
+            "revenue": "1527011.60"
+          },
+          {
+            "category": "food",
+            "period": "previous",
+            "revenue": "572405.40"
+          },
+          {
+            "category": "living",
+            "period": "current",
+            "revenue": "2878834.71"
+          },
+          {
+            "category": "living",
+            "period": "previous",
+            "revenue": "1087186.25"
+          }
+        ],
+        "source_tables": [
+          "orders",
+          "products",
+          "users"
+        ],
+        "row_count": 10,
+        "data_as_of": "2026-09-15",
+        "attempts": 1
+      },
+      "chart_spec": {
+        "chart_type": "grouped_bar",
+        "x": "category",
+        "y": "revenue",
+        "series": "period",
+        "title": "20대 카테고리별 매출 기간 비교",
+        "x_label": "카테고리",
+        "y_label": "매출(KRW)",
+        "sort": "none",
+        "top_n": 10
+      },
+      "trace": [
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "request",
+          "status": "started",
+          "detail": {
+            "persona": "marketer"
+          },
+          "timestamp": "2026-09-22T05:46:00.190281Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "analysis_plan",
+          "status": "success",
+          "detail": {
+            "persona": "marketer",
+            "plan": {
+              "persona": "marketer",
+              "interpreted_question": "최근 3개월과 직전 3개월의 20대 카테고리별 completed 매출 비교",
+              "metric": "revenue",
+              "dimensions": [
+                "category",
+                "period"
+              ],
+              "filters": [
+                "20 <= age < 30",
+                "status = completed"
+              ],
+              "date_range": "latest 3 calendar months and prior 3 complete months from max order_date",
+              "comparison": "previous_3_months",
+              "chart_hint": "grouped_bar",
+              "clarification_needed": false,
+              "clarification_question": null
+            },
+            "elapsed_ms": 0.29
+          },
+          "timestamp": "2026-09-22T05:46:00.190580Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "sql",
+          "status": "success",
+          "detail": {
+            "attempts": 1,
+            "row_count": 10,
+            "source_tables": [
+              "orders",
+              "products",
+              "users"
+            ],
+            "tools_called": [
+              "list_tables",
+              "inspect_schema",
+              "execute_readonly_sql"
+            ],
+            "final_sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+            "elapsed_ms": 16.82
+          },
+          "timestamp": "2026-09-22T05:46:00.207407Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "deterministic_analysis",
+          "status": "success",
+          "detail": {
+            "metrics": [
+              {
+                "name": "category_growth:beauty",
+                "value": 1729.51,
+                "formula": "(current - previous) / previous * 100",
+                "unit": "%",
+                "context": {
+                  "category": "beauty",
+                  "current": 9224188.55,
+                  "previous": 504190.14
+                }
+              },
+              {
+                "name": "category_growth:digital",
+                "value": 128.98,
+                "formula": "(current - previous) / previous * 100",
+                "unit": "%",
+                "context": {
+                  "category": "digital",
+                  "current": 7579629.28,
+                  "previous": 3310234.51
+                }
+              },
+              {
+                "name": "category_growth:fashion",
+                "value": 225.59,
+                "formula": "(current - previous) / previous * 100",
+                "unit": "%",
+                "context": {
+                  "category": "fashion",
+                  "current": 6646278.87,
+                  "previous": 2041277.26
+                }
+              },
+              {
+                "name": "category_growth:food",
+                "value": 166.77,
+                "formula": "(current - previous) / previous * 100",
+                "unit": "%",
+                "context": {
+                  "category": "food",
+                  "current": 1527011.6,
+                  "previous": 572405.4
+                }
+              },
+              {
+                "name": "category_growth:living",
+                "value": 164.8,
+                "formula": "(current - previous) / previous * 100",
+                "unit": "%",
+                "context": {
+                  "category": "living",
+                  "current": 2878834.71,
+                  "previous": 1087186.25
+                }
+              },
+              {
+                "name": "top_current_category",
+                "value": "beauty",
+                "formula": "ARGMAX(current revenue)",
+                "unit": null,
+                "context": {
+                  "category": "beauty",
+                  "revenue": 9224188.55
+                }
+              }
+            ]
+          },
+          "timestamp": "2026-09-22T05:46:00.209801Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "chart",
+          "status": "success",
+          "detail": {
+            "chart_spec": {
+              "chart_type": "grouped_bar",
+              "x": "category",
+              "y": "revenue",
+              "series": "period",
+              "title": "20대 카테고리별 매출 기간 비교",
+              "x_label": "카테고리",
+              "y_label": "매출(KRW)",
+              "sort": "none",
+              "top_n": 10
+            },
+            "fallback": null
+          },
+          "timestamp": "2026-09-22T05:46:00.222124Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "insight",
+          "status": "success",
+          "detail": {
+            "elapsed_ms": 31.87
+          },
+          "timestamp": "2026-09-22T05:46:00.222152Z"
+        },
+        {
+          "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+          "stage": "request",
+          "status": "success",
+          "detail": {
+            "outcome": "success",
+            "elapsed_ms": 31.87
+          },
+          "timestamp": "2026-09-22T05:46:00.222154Z"
+        }
+      ]
+    },
+    "planner": {
+      "mode": "offline_acceptance",
+      "persona": "planner",
+      "question": "이번 분기 매출이 목표 대비 어떤가?",
+      "status": "success",
+      "analysis_plan": {
+        "persona": "planner",
+        "interpreted_question": "이번 분기 completed 매출을 월별 목표와 비교",
+        "metric": "revenue",
+        "dimensions": [
+          "month"
+        ],
+        "filters": [
+          "status = completed"
+        ],
+        "date_range": "current quarter through max order_date",
+        "comparison": "target",
+        "chart_hint": "grouped_bar",
+        "clarification_needed": false,
+        "clarification_question": null
+      },
+      "user_message": null,
+      "insight": {
+        "persona": "planner",
+        "question": "이번 분기 매출이 목표 대비 어떤가?",
+        "headline": "이번 분기 매출 목표 달성률은 95.69%로 목표에 미달했습니다.",
+        "key_findings": [
+          "완료 주문 매출은 86,189,442원, 목표는 90,067,967원입니다.",
+          "목표 대비 격차는 -3,878,525원입니다."
+        ],
+        "chart_spec": {
+          "chart_type": "grouped_bar",
+          "x": "month",
+          "y": "actual_revenue",
+          "series": "target_revenue",
+          "title": "월별 실제 매출과 목표 비교",
+          "x_label": "월",
+          "y_label": "매출(KRW)",
+          "sort": "none",
+          "top_n": null
+        },
+        "applied_context": [
+          "current quarter through max order_date",
+          "completed 주문만 매출에 포함",
+          "completed 상태 주문의 sales_amount 합계(취소·환불 제외)"
+        ],
+        "next_analysis_question": "목표 격차가 큰 카테고리와 지역을 나눠서 보시겠어요?",
+        "caveats": [
+          "2026년 9월은 데이터 기준일까지의 누적값입니다."
+        ],
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+        "source_tables": [
+          "monthly_targets",
+          "orders"
+        ],
+        "row_count": 3,
+        "data_as_of": "2026-09-15"
+      },
+      "query": {
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+        "columns": [
+          "month",
+          "actual_revenue",
+          "target_revenue",
+          "achievement_rate"
+        ],
+        "rows": [
+          {
+            "month": "2026-07-01",
+            "actual_revenue": "28084673.34",
+            "target_revenue": "29348483.64",
+            "achievement_rate": "95.69"
+          },
+          {
+            "month": "2026-08-01",
+            "actual_revenue": "33988584.17",
+            "target_revenue": "35518070.46",
+            "achievement_rate": "95.69"
+          },
+          {
+            "month": "2026-09-01",
+            "actual_revenue": "24116184.40",
+            "target_revenue": "25201412.70",
+            "achievement_rate": "95.69"
+          }
+        ],
+        "source_tables": [
+          "monthly_targets",
+          "orders"
+        ],
+        "row_count": 3,
+        "data_as_of": "2026-09-15",
+        "attempts": 1
+      },
+      "chart_spec": {
+        "chart_type": "grouped_bar",
+        "x": "month",
+        "y": "actual_revenue",
+        "series": "target_revenue",
+        "title": "월별 실제 매출과 목표 비교",
+        "x_label": "월",
+        "y_label": "매출(KRW)",
+        "sort": "none",
+        "top_n": null
+      },
+      "trace": [
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "request",
+          "status": "started",
+          "detail": {
+            "persona": "planner"
+          },
+          "timestamp": "2026-09-22T05:46:00.088086Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "analysis_plan",
+          "status": "success",
+          "detail": {
+            "persona": "planner",
+            "plan": {
+              "persona": "planner",
+              "interpreted_question": "이번 분기 completed 매출을 월별 목표와 비교",
+              "metric": "revenue",
+              "dimensions": [
+                "month"
+              ],
+              "filters": [
+                "status = completed"
+              ],
+              "date_range": "current quarter through max order_date",
+              "comparison": "target",
+              "chart_hint": "grouped_bar",
+              "clarification_needed": false,
+              "clarification_question": null
+            },
+            "elapsed_ms": 2.92
+          },
+          "timestamp": "2026-09-22T05:46:00.091043Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "sql",
+          "status": "success",
+          "detail": {
+            "attempts": 1,
+            "row_count": 3,
+            "source_tables": [
+              "monthly_targets",
+              "orders"
+            ],
+            "tools_called": [
+              "list_tables",
+              "inspect_schema",
+              "execute_readonly_sql"
+            ],
+            "final_sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+            "elapsed_ms": 35.8
+          },
+          "timestamp": "2026-09-22T05:46:00.126853Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "deterministic_analysis",
+          "status": "success",
+          "detail": {
+            "metrics": [
+              {
+                "name": "actual_revenue",
+                "value": 86189441.91,
+                "formula": "SUM(actual_revenue)",
+                "unit": "KRW",
+                "context": {}
+              },
+              {
+                "name": "target_revenue",
+                "value": 90067966.8,
+                "formula": "SUM(target_revenue)",
+                "unit": "KRW",
+                "context": {}
+              },
+              {
+                "name": "target_achievement_rate",
+                "value": 95.69,
+                "formula": "actual_revenue / target_revenue * 100",
+                "unit": "%",
+                "context": {}
+              },
+              {
+                "name": "target_gap",
+                "value": -3878524.89,
+                "formula": "actual_revenue - target_revenue",
+                "unit": "KRW",
+                "context": {}
+              }
+            ]
+          },
+          "timestamp": "2026-09-22T05:46:00.128532Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "chart",
+          "status": "success",
+          "detail": {
+            "chart_spec": {
+              "chart_type": "grouped_bar",
+              "x": "month",
+              "y": "actual_revenue",
+              "series": "target_revenue",
+              "title": "월별 실제 매출과 목표 비교",
+              "x_label": "월",
+              "y_label": "매출(KRW)",
+              "sort": "none",
+              "top_n": null
+            },
+            "fallback": null
+          },
+          "timestamp": "2026-09-22T05:46:00.153619Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "insight",
+          "status": "success",
+          "detail": {
+            "elapsed_ms": 65.55
+          },
+          "timestamp": "2026-09-22T05:46:00.153655Z"
+        },
+        {
+          "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+          "stage": "request",
+          "status": "success",
+          "detail": {
+            "outcome": "success",
+            "elapsed_ms": 65.55
+          },
+          "timestamp": "2026-09-22T05:46:00.153657Z"
+        }
+      ]
+    },
+    "pm": {
+      "mode": "offline_acceptance",
+      "persona": "pm",
+      "question": "최근 3개월 신규 가입자의 7일 이내 핵심 기능 활성화율을 기기별로 보여줘.",
+      "status": "success",
+      "analysis_plan": {
+        "persona": "pm",
+        "interpreted_question": "최근 3개월 신규 가입자의 7일 활성화율을 기기별 비교",
+        "metric": "activation_rate_7d",
+        "dimensions": [
+          "device"
+        ],
+        "filters": [
+          "event_name = feature_used",
+          "mature cohort only"
+        ],
+        "date_range": "latest 3 calendar months through data max date; signup <= max date - 7 days",
+        "comparison": "device",
+        "chart_hint": "bar",
+        "clarification_needed": false,
+        "clarification_question": null
+      },
+      "user_message": null,
+      "insight": {
+        "persona": "pm",
+        "question": "최근 3개월 신규 가입자의 7일 이내 핵심 기능 활성화율을 기기별로 보여줘.",
+        "headline": "7일 활성화율은 tablet가 66.67%로 가장 높습니다.",
+        "key_findings": [
+          "tablet는 12명 중 8명이 활성화했습니다.",
+          "mobile는 72명 중 31명으로 활성화율이 43.06%입니다."
+        ],
+        "chart_spec": {
+          "chart_type": "bar",
+          "x": "device",
+          "y": "activation_rate",
+          "series": null,
+          "title": "기기별 7일 활성화율",
+          "x_label": "기기",
+          "y_label": "활성화율(%)",
+          "sort": "descending",
+          "top_n": null
+        },
+        "applied_context": [
+          "latest 3 calendar months through data max date; signup <= max date - 7 days",
+          "feature_used within signup+7 days",
+          "관찰 가능한 가입자 중 가입일로부터 7일 이내 feature_used 사용자 비율"
+        ],
+        "next_analysis_question": "mobile 가입자의 7일 내 행동 단계별 이탈을 비교해 보시겠어요?",
+        "caveats": [
+          "가입 후 7일 관찰 기간이 완성된 cohort만 포함했습니다."
+        ],
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(event_date) AS max_date\n  FROM analytics.user_events\n), cohort AS (\n  SELECT\n    u.user_id,\n    u.device,\n    u.signup_date\n  FROM analytics.users AS u\n  CROSS JOIN bounds\n  WHERE\n    u.signup_date >= CAST(DATE_TRUNC('MONTH', bounds.max_date) AS DATE) - INTERVAL '2 MONTHS'\n    AND u.signup_date <= bounds.max_date - INTERVAL '7 DAYS'\n), activated AS (\n  SELECT DISTINCT\n    c.user_id\n  FROM cohort AS c\n  JOIN analytics.user_events AS e\n    ON e.user_id = c.user_id\n  WHERE\n    e.event_name = 'feature_used'\n    AND e.event_date BETWEEN c.signup_date AND c.signup_date + INTERVAL '7 DAYS'\n)\nSELECT\n  c.device,\n  COUNT(*) AS signup_users,\n  COUNT(a.user_id) AS activated_users,\n  ROUND(CAST(COUNT(a.user_id) AS DECIMAL) / NULLIF(COUNT(*), 0) * 100, 2) AS activation_rate\nFROM cohort AS c\nLEFT JOIN activated AS a\n  ON a.user_id = c.user_id\nGROUP BY\n  c.device\nORDER BY\n  c.device\nLIMIT 100",
+        "source_tables": [
+          "user_events",
+          "users"
+        ],
+        "row_count": 3,
+        "data_as_of": "2026-09-15"
+      },
+      "query": {
+        "sql": "WITH bounds AS (\n  SELECT\n    MAX(event_date) AS max_date\n  FROM analytics.user_events\n), cohort AS (\n  SELECT\n    u.user_id,\n    u.device,\n    u.signup_date\n  FROM analytics.users AS u\n  CROSS JOIN bounds\n  WHERE\n    u.signup_date >= CAST(DATE_TRUNC('MONTH', bounds.max_date) AS DATE) - INTERVAL '2 MONTHS'\n    AND u.signup_date <= bounds.max_date - INTERVAL '7 DAYS'\n), activated AS (\n  SELECT DISTINCT\n    c.user_id\n  FROM cohort AS c\n  JOIN analytics.user_events AS e\n    ON e.user_id = c.user_id\n  WHERE\n    e.event_name = 'feature_used'\n    AND e.event_date BETWEEN c.signup_date AND c.signup_date + INTERVAL '7 DAYS'\n)\nSELECT\n  c.device,\n  COUNT(*) AS signup_users,\n  COUNT(a.user_id) AS activated_users,\n  ROUND(CAST(COUNT(a.user_id) AS DECIMAL) / NULLIF(COUNT(*), 0) * 100, 2) AS activation_rate\nFROM cohort AS c\nLEFT JOIN activated AS a\n  ON a.user_id = c.user_id\nGROUP BY\n  c.device\nORDER BY\n  c.device\nLIMIT 100",
+        "columns": [
+          "device",
+          "signup_users",
+          "activated_users",
+          "activation_rate"
+        ],
+        "rows": [
+          {
+            "device": "desktop",
+            "signup_users": 47,
+            "activated_users": 29,
+            "activation_rate": "61.70"
+          },
+          {
+            "device": "mobile",
+            "signup_users": 72,
+            "activated_users": 31,
+            "activation_rate": "43.06"
+          },
+          {
+            "device": "tablet",
+            "signup_users": 12,
+            "activated_users": 8,
+            "activation_rate": "66.67"
+          }
+        ],
+        "source_tables": [
+          "user_events",
+          "users"
+        ],
+        "row_count": 3,
+        "data_as_of": "2026-09-15",
+        "attempts": 1
+      },
+      "chart_spec": {
+        "chart_type": "bar",
+        "x": "device",
+        "y": "activation_rate",
+        "series": null,
+        "title": "기기별 7일 활성화율",
+        "x_label": "기기",
+        "y_label": "활성화율(%)",
+        "sort": "descending",
+        "top_n": null
+      },
+      "trace": [
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "request",
+          "status": "started",
+          "detail": {
+            "persona": "pm"
+          },
+          "timestamp": "2026-09-22T05:46:00.252470Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "analysis_plan",
+          "status": "success",
+          "detail": {
+            "persona": "pm",
+            "plan": {
+              "persona": "pm",
+              "interpreted_question": "최근 3개월 신규 가입자의 7일 활성화율을 기기별 비교",
+              "metric": "activation_rate_7d",
+              "dimensions": [
+                "device"
+              ],
+              "filters": [
+                "event_name = feature_used",
+                "mature cohort only"
+              ],
+              "date_range": "latest 3 calendar months through data max date; signup <= max date - 7 days",
+              "comparison": "device",
+              "chart_hint": "bar",
+              "clarification_needed": false,
+              "clarification_question": null
+            },
+            "elapsed_ms": 0.26
+          },
+          "timestamp": "2026-09-22T05:46:00.252739Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "sql",
+          "status": "success",
+          "detail": {
+            "attempts": 1,
+            "row_count": 3,
+            "source_tables": [
+              "user_events",
+              "users"
+            ],
+            "tools_called": [
+              "list_tables",
+              "inspect_schema",
+              "execute_readonly_sql"
+            ],
+            "final_sql": "WITH bounds AS (\n  SELECT\n    MAX(event_date) AS max_date\n  FROM analytics.user_events\n), cohort AS (\n  SELECT\n    u.user_id,\n    u.device,\n    u.signup_date\n  FROM analytics.users AS u\n  CROSS JOIN bounds\n  WHERE\n    u.signup_date >= CAST(DATE_TRUNC('MONTH', bounds.max_date) AS DATE) - INTERVAL '2 MONTHS'\n    AND u.signup_date <= bounds.max_date - INTERVAL '7 DAYS'\n), activated AS (\n  SELECT DISTINCT\n    c.user_id\n  FROM cohort AS c\n  JOIN analytics.user_events AS e\n    ON e.user_id = c.user_id\n  WHERE\n    e.event_name = 'feature_used'\n    AND e.event_date BETWEEN c.signup_date AND c.signup_date + INTERVAL '7 DAYS'\n)\nSELECT\n  c.device,\n  COUNT(*) AS signup_users,\n  COUNT(a.user_id) AS activated_users,\n  ROUND(CAST(COUNT(a.user_id) AS DECIMAL) / NULLIF(COUNT(*), 0) * 100, 2) AS activation_rate\nFROM cohort AS c\nLEFT JOIN activated AS a\n  ON a.user_id = c.user_id\nGROUP BY\n  c.device\nORDER BY\n  c.device\nLIMIT 100",
+            "elapsed_ms": 39.66
+          },
+          "timestamp": "2026-09-22T05:46:00.292415Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "deterministic_analysis",
+          "status": "success",
+          "detail": {
+            "metrics": [
+              {
+                "name": "activation_rate:desktop",
+                "value": 61.7,
+                "formula": "activated_users / signup_users * 100",
+                "unit": "%",
+                "context": {
+                  "device": "desktop",
+                  "signup_users": 47,
+                  "activated_users": 29
+                }
+              },
+              {
+                "name": "activation_rate:mobile",
+                "value": 43.06,
+                "formula": "activated_users / signup_users * 100",
+                "unit": "%",
+                "context": {
+                  "device": "mobile",
+                  "signup_users": 72,
+                  "activated_users": 31
+                }
+              },
+              {
+                "name": "activation_rate:tablet",
+                "value": 66.67,
+                "formula": "activated_users / signup_users * 100",
+                "unit": "%",
+                "context": {
+                  "device": "tablet",
+                  "signup_users": 12,
+                  "activated_users": 8
+                }
+              }
+            ]
+          },
+          "timestamp": "2026-09-22T05:46:00.292901Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "chart",
+          "status": "success",
+          "detail": {
+            "chart_spec": {
+              "chart_type": "bar",
+              "x": "device",
+              "y": "activation_rate",
+              "series": null,
+              "title": "기기별 7일 활성화율",
+              "x_label": "기기",
+              "y_label": "활성화율(%)",
+              "sort": "descending",
+              "top_n": null
+            },
+            "fallback": null
+          },
+          "timestamp": "2026-09-22T05:46:00.303309Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "insight",
+          "status": "success",
+          "detail": {
+            "elapsed_ms": 50.86
+          },
+          "timestamp": "2026-09-22T05:46:00.303335Z"
+        },
+        {
+          "request_id": "0233c84ee16546d38bc1b91f9576d6b2",
+          "stage": "request",
+          "status": "success",
+          "detail": {
+            "outcome": "success",
+            "elapsed_ms": 50.86
+          },
+          "timestamp": "2026-09-22T05:46:00.303338Z"
+        }
+      ]
+    }
+  },
+  "evidence_files": [
+    "capture-server.log",
+    "environment-summary.txt",
+    "live-model-summary.json",
+    "scenario-ambiguous.json",
+    "scenario-marketer.json",
+    "scenario-persona-comparison.json",
+    "scenario-planner.json",
+    "scenario-pm.json",
+    "sql-safety-summary.txt",
+    "test-summary.txt"
+  ],
+  "source_commit": "not recorded; working tree preserved"
+}

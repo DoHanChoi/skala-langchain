@@ -1,0 +1,241 @@
+{
+  "mode": "offline_acceptance",
+  "persona": "planner",
+  "question": "이번 분기 매출이 목표 대비 어떤가?",
+  "status": "success",
+  "analysis_plan": {
+    "persona": "planner",
+    "interpreted_question": "이번 분기 completed 매출을 월별 목표와 비교",
+    "metric": "revenue",
+    "dimensions": [
+      "month"
+    ],
+    "filters": [
+      "status = completed"
+    ],
+    "date_range": "current quarter through max order_date",
+    "comparison": "target",
+    "chart_hint": "grouped_bar",
+    "clarification_needed": false,
+    "clarification_question": null
+  },
+  "user_message": null,
+  "insight": {
+    "persona": "planner",
+    "question": "이번 분기 매출이 목표 대비 어떤가?",
+    "headline": "이번 분기 매출 목표 달성률은 95.69%로 목표에 미달했습니다.",
+    "key_findings": [
+      "완료 주문 매출은 86,189,442원, 목표는 90,067,967원입니다.",
+      "목표 대비 격차는 -3,878,525원입니다."
+    ],
+    "chart_spec": {
+      "chart_type": "grouped_bar",
+      "x": "month",
+      "y": "actual_revenue",
+      "series": "target_revenue",
+      "title": "월별 실제 매출과 목표 비교",
+      "x_label": "월",
+      "y_label": "매출(KRW)",
+      "sort": "none",
+      "top_n": null
+    },
+    "applied_context": [
+      "current quarter through max order_date",
+      "completed 주문만 매출에 포함",
+      "completed 상태 주문의 sales_amount 합계(취소·환불 제외)"
+    ],
+    "next_analysis_question": "목표 격차가 큰 카테고리와 지역을 나눠서 보시겠어요?",
+    "caveats": [
+      "2026년 9월은 데이터 기준일까지의 누적값입니다."
+    ],
+    "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+    "source_tables": [
+      "monthly_targets",
+      "orders"
+    ],
+    "row_count": 3,
+    "data_as_of": "2026-09-15"
+  },
+  "query": {
+    "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+    "columns": [
+      "month",
+      "actual_revenue",
+      "target_revenue",
+      "achievement_rate"
+    ],
+    "rows": [
+      {
+        "month": "2026-07-01",
+        "actual_revenue": "28084673.34",
+        "target_revenue": "29348483.64",
+        "achievement_rate": "95.69"
+      },
+      {
+        "month": "2026-08-01",
+        "actual_revenue": "33988584.17",
+        "target_revenue": "35518070.46",
+        "achievement_rate": "95.69"
+      },
+      {
+        "month": "2026-09-01",
+        "actual_revenue": "24116184.40",
+        "target_revenue": "25201412.70",
+        "achievement_rate": "95.69"
+      }
+    ],
+    "source_tables": [
+      "monthly_targets",
+      "orders"
+    ],
+    "row_count": 3,
+    "data_as_of": "2026-09-15",
+    "attempts": 1
+  },
+  "chart_spec": {
+    "chart_type": "grouped_bar",
+    "x": "month",
+    "y": "actual_revenue",
+    "series": "target_revenue",
+    "title": "월별 실제 매출과 목표 비교",
+    "x_label": "월",
+    "y_label": "매출(KRW)",
+    "sort": "none",
+    "top_n": null
+  },
+  "trace": [
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "request",
+      "status": "started",
+      "detail": {
+        "persona": "planner"
+      },
+      "timestamp": "2026-09-22T05:46:00.088086Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "analysis_plan",
+      "status": "success",
+      "detail": {
+        "persona": "planner",
+        "plan": {
+          "persona": "planner",
+          "interpreted_question": "이번 분기 completed 매출을 월별 목표와 비교",
+          "metric": "revenue",
+          "dimensions": [
+            "month"
+          ],
+          "filters": [
+            "status = completed"
+          ],
+          "date_range": "current quarter through max order_date",
+          "comparison": "target",
+          "chart_hint": "grouped_bar",
+          "clarification_needed": false,
+          "clarification_question": null
+        },
+        "elapsed_ms": 2.92
+      },
+      "timestamp": "2026-09-22T05:46:00.091043Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "sql",
+      "status": "success",
+      "detail": {
+        "attempts": 1,
+        "row_count": 3,
+        "source_tables": [
+          "monthly_targets",
+          "orders"
+        ],
+        "tools_called": [
+          "list_tables",
+          "inspect_schema",
+          "execute_readonly_sql"
+        ],
+        "final_sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), period AS (\n  SELECT\n    CAST(DATE_TRUNC('QUARTER', max_date) AS DATE) AS quarter_start,\n    max_date\n  FROM bounds\n), actual AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', o.order_date) AS DATE) AS month,\n    SUM(o.sales_amount) FILTER(WHERE\n      o.status = 'completed') AS actual_revenue\n  FROM analytics.orders AS o\n  CROSS JOIN period AS p\n  WHERE\n    o.order_date BETWEEN p.quarter_start AND p.max_date\n  GROUP BY\n    1\n)\nSELECT\n  a.month,\n  a.actual_revenue,\n  t.target_value AS target_revenue,\n  ROUND(a.actual_revenue / NULLIF(t.target_value, 0) * 100, 2) AS achievement_rate\nFROM actual AS a\nJOIN analytics.monthly_targets AS t\n  ON t.target_month = a.month AND t.metric_name = 'revenue'\nORDER BY\n  a.month\nLIMIT 100",
+        "elapsed_ms": 35.8
+      },
+      "timestamp": "2026-09-22T05:46:00.126853Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "deterministic_analysis",
+      "status": "success",
+      "detail": {
+        "metrics": [
+          {
+            "name": "actual_revenue",
+            "value": 86189441.91,
+            "formula": "SUM(actual_revenue)",
+            "unit": "KRW",
+            "context": {}
+          },
+          {
+            "name": "target_revenue",
+            "value": 90067966.8,
+            "formula": "SUM(target_revenue)",
+            "unit": "KRW",
+            "context": {}
+          },
+          {
+            "name": "target_achievement_rate",
+            "value": 95.69,
+            "formula": "actual_revenue / target_revenue * 100",
+            "unit": "%",
+            "context": {}
+          },
+          {
+            "name": "target_gap",
+            "value": -3878524.89,
+            "formula": "actual_revenue - target_revenue",
+            "unit": "KRW",
+            "context": {}
+          }
+        ]
+      },
+      "timestamp": "2026-09-22T05:46:00.128532Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "chart",
+      "status": "success",
+      "detail": {
+        "chart_spec": {
+          "chart_type": "grouped_bar",
+          "x": "month",
+          "y": "actual_revenue",
+          "series": "target_revenue",
+          "title": "월별 실제 매출과 목표 비교",
+          "x_label": "월",
+          "y_label": "매출(KRW)",
+          "sort": "none",
+          "top_n": null
+        },
+        "fallback": null
+      },
+      "timestamp": "2026-09-22T05:46:00.153619Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "insight",
+      "status": "success",
+      "detail": {
+        "elapsed_ms": 65.55
+      },
+      "timestamp": "2026-09-22T05:46:00.153655Z"
+    },
+    {
+      "request_id": "7ad28c60b85b4782880e2324ac7599d7",
+      "stage": "request",
+      "status": "success",
+      "detail": {
+        "outcome": "success",
+        "elapsed_ms": 65.55
+      },
+      "timestamp": "2026-09-22T05:46:00.153657Z"
+    }
+  ]
+}

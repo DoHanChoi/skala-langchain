@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RoleLens 분석 처리 흐름</title>
+  <style>
+    :root{--paper:#F7F4EE;--paper2:#FFFFFF;--ink:#18222D;--muted:#68737D;--rule:#D9D6CF;--accent:#E56F45;--accent-tint:#FBE8DF;--link:#3A6EA5;--positive:#2E7D64}
+    *{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+    main{width:1280px;margin:0 auto;padding:36px 40px 24px}.eyebrow{margin:0 0 8px;color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.14em}.title{margin:0 0 18px;font-size:28px;font-weight:650}.note{margin:16px 0 0;color:var(--muted);font-size:13px}
+    svg{display:block;width:100%;height:auto}
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">DATA FLOW / DOC-WIDE / SIMPLIFIED</p>
+  <h1 class="title">RoleLens 분석 처리 흐름</h1>
+  <svg viewBox="0 0 1280 720" role="img" aria-labelledby="analysis-flow-title analysis-flow-desc">
+    <title id="analysis-flow-title">RoleLens 분석 처리 흐름</title>
+    <desc id="analysis-flow-desc">한국어 질문이 페르소나별 분석 계획, 확인 질문 게이트, 안전한 SQL 실행, 결정론적 통계와 차트를 거쳐 근거 기반 Insight Card로 바뀌는 흐름을 보여준다.</desc>
+    <defs>
+      <marker id="af-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#68737D"/></marker>
+      <marker id="af-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#E56F45"/></marker>
+      <marker id="af-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3A6EA5"/></marker>
+    </defs>
+    <rect width="1280" height="720" fill="#F7F4EE"/>
+
+    <text x="52" y="126" fill="#68737D" font-size="12" font-weight="600" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">INPUT</text>
+    <line x1="52" y1="142" x2="1200" y2="142" stroke="#D9D6CF" stroke-width="1"/>
+    <text x="52" y="570" fill="#68737D" font-size="12" font-weight="600" font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif">OUTPUT</text>
+    <line x1="52" y1="586" x2="1200" y2="586" stroke="#D9D6CF" stroke-width="1"/>
+
+    <!-- connectors before nodes -->
+    <line x1="192" y1="330" x2="216" y2="330" stroke="#68737D" stroke-width="2" marker-end="url(#af-arrow)"/>
+    <line x1="360" y1="330" x2="384" y2="330" stroke="#68737D" stroke-width="2" marker-end="url(#af-arrow)"/>
+    <line x1="528" y1="330" x2="552" y2="330" stroke="#E56F45" stroke-width="2" marker-end="url(#af-arrow-accent)"/>
+    <line x1="696" y1="330" x2="720" y2="330" stroke="#68737D" stroke-width="2" marker-end="url(#af-arrow)"/>
+    <line x1="864" y1="330" x2="888" y2="330" stroke="#68737D" stroke-width="2" marker-end="url(#af-arrow)"/>
+    <line x1="1032" y1="330" x2="1056" y2="330" stroke="#3A6EA5" stroke-width="2" marker-end="url(#af-arrow-link)"/>
+
+    <!-- nodes -->
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" text-anchor="middle">
+      <rect x="52" y="276" width="140" height="108" rx="8" fill="#FFFFFF" stroke="#68737D"/>
+      <text x="122" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="122">자연어 질문</tspan><tspan x="122" dy="24">+직무 선택</tspan></text>
+
+      <rect x="220" y="276" width="140" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="290" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="290">페르소나 분기</tspan><tspan x="290" dy="24">구조화 계획</tspan></text>
+
+      <rect x="388" y="276" width="140" height="108" rx="8" fill="#FBE8DF" stroke="#E56F45" stroke-width="2"/>
+      <text x="458" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="458">확인 질문</tspan><tspan x="458" dy="24">게이트</tspan></text>
+
+      <rect x="556" y="276" width="140" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="626" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="626">SQL 도구</tspan><tspan x="626" dy="24">AST 안전 검사</tspan></text>
+
+      <rect x="724" y="276" width="140" height="108" rx="8" fill="#18222D" stroke="#18222D"/>
+      <text x="794" y="322" fill="#FFFFFF" font-size="16" font-weight="650"><tspan x="794">읽기 전용</tspan><tspan x="794" dy="24">PostgreSQL</tspan></text>
+
+      <rect x="892" y="276" width="140" height="108" rx="8" fill="#FFFFFF" stroke="#18222D"/>
+      <text x="962" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="962">결정론적 통계</tspan><tspan x="962" dy="24">ChartSpec</tspan></text>
+
+      <rect x="1060" y="276" width="140" height="108" rx="8" fill="#FBE8DF" stroke="#E56F45" stroke-width="2"/>
+      <text x="1130" y="322" fill="#18222D" font-size="16" font-weight="650"><tspan x="1130">근거 기반</tspan><tspan x="1130" dy="24">Insight Card</tspan></text>
+    </g>
+
+    <g font-family="'Apple SD Gothic Neo','Noto Sans KR',sans-serif" font-size="12" fill="#68737D">
+      <text x="52" y="626">모호하면 SQL을 실행하지 않고 확인 질문으로 종료한다.</text>
+      <text x="52" y="650">수치 계산과 차트 렌더링은 LLM이 아닌 검증된 Python 함수가 담당한다.</text>
+    </g>
+  </svg>
+  <p class="note">요청의 9개 세부 단계를 7개 능력 노드로 압축했다. 통계 분석과 ChartSpec, 페르소나 분기와 AnalysisPlan은 항상 함께 이동하므로 각각 하나의 노드로 통합했다.</p>
+</main>
+</body>
+</html>

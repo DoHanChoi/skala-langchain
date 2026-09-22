@@ -1,0 +1,64 @@
+{
+  "collected_at": "2026-09-22T14:46:12+09:00",
+  "provider": "openai",
+  "model_id": "gpt-4o-mini",
+  "secret_values_recorded": false,
+  "results": [
+    {
+      "persona": "marketer",
+      "question": "최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.",
+      "status": "success",
+      "message": null,
+      "headline": "20대 고객의 카테고리별 매출 변화 분석",
+      "attempts": 3,
+      "row_count": 10,
+      "source_tables": [
+        "orders",
+        "products",
+        "users"
+      ],
+      "analysis_plan": {
+        "persona": "marketer",
+        "interpreted_question": "최근 3개월과 직전 3개월의 20대 카테고리별 completed 매출 비교",
+        "metric": "revenue",
+        "dimensions": [
+          "category",
+          "period"
+        ],
+        "filters": [
+          "20 <= age < 30",
+          "status = completed"
+        ],
+        "date_range": "latest 3 calendar months and prior 3 complete months from max order_date",
+        "comparison": "previous_3_months",
+        "chart_hint": "grouped_bar",
+        "clarification_needed": false,
+        "clarification_question": null
+      }
+    },
+    {
+      "persona": "marketer",
+      "question": "요즘 잘 나가는 상품을 보여줘.",
+      "status": "clarification",
+      "message": "최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?",
+      "headline": null,
+      "attempts": null,
+      "row_count": null,
+      "source_tables": null,
+      "analysis_plan": {
+        "persona": "marketer",
+        "interpreted_question": "요즘 잘 나가는 상품을 보여줘.",
+        "metric": "ambiguous_product_performance",
+        "dimensions": [
+          "product_name"
+        ],
+        "filters": [],
+        "date_range": "ambiguous",
+        "comparison": null,
+        "chart_hint": "bar",
+        "clarification_needed": true,
+        "clarification_question": "최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?"
+      }
+    }
+  ]
+}

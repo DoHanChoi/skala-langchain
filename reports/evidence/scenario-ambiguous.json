@@ -1,0 +1,79 @@
+{
+  "mode": "offline_acceptance",
+  "persona": "marketer",
+  "question": "요즘 잘 나가는 상품을 보여줘.",
+  "status": "clarification",
+  "analysis_plan": {
+    "persona": "marketer",
+    "interpreted_question": "요즘 잘 나가는 상품을 보여줘.",
+    "metric": "ambiguous_product_performance",
+    "dimensions": [
+      "product_name"
+    ],
+    "filters": [],
+    "date_range": "ambiguous",
+    "comparison": null,
+    "chart_hint": "bar",
+    "clarification_needed": true,
+    "clarification_question": "최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?"
+  },
+  "user_message": "최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?",
+  "insight": null,
+  "query": null,
+  "chart_spec": null,
+  "trace": [
+    {
+      "request_id": "f6324a6f1b2f43ff97c0a1799f901421",
+      "stage": "request",
+      "status": "started",
+      "detail": {
+        "persona": "marketer"
+      },
+      "timestamp": "2026-09-22T05:46:00.328447Z"
+    },
+    {
+      "request_id": "f6324a6f1b2f43ff97c0a1799f901421",
+      "stage": "analysis_plan",
+      "status": "success",
+      "detail": {
+        "persona": "marketer",
+        "plan": {
+          "persona": "marketer",
+          "interpreted_question": "요즘 잘 나가는 상품을 보여줘.",
+          "metric": "ambiguous_product_performance",
+          "dimensions": [
+            "product_name"
+          ],
+          "filters": [],
+          "date_range": "ambiguous",
+          "comparison": null,
+          "chart_hint": "bar",
+          "clarification_needed": true,
+          "clarification_question": "최근 30일의 매출액을 기준으로 상위 상품을 보여드릴까요?"
+        },
+        "elapsed_ms": 0.22
+      },
+      "timestamp": "2026-09-22T05:46:00.328675Z"
+    },
+    {
+      "request_id": "f6324a6f1b2f43ff97c0a1799f901421",
+      "stage": "sql",
+      "status": "skipped",
+      "detail": {
+        "reason": "clarification_needed",
+        "tools_called": []
+      },
+      "timestamp": "2026-09-22T05:46:00.328676Z"
+    },
+    {
+      "request_id": "f6324a6f1b2f43ff97c0a1799f901421",
+      "stage": "request",
+      "status": "success",
+      "detail": {
+        "outcome": "clarification",
+        "elapsed_ms": 0.23
+      },
+      "timestamp": "2026-09-22T05:46:00.328678Z"
+    }
+  ]
+}

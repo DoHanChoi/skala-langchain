@@ -1,0 +1,316 @@
+{
+  "mode": "offline_acceptance",
+  "persona": "marketer",
+  "question": "최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.",
+  "status": "success",
+  "analysis_plan": {
+    "persona": "marketer",
+    "interpreted_question": "최근 3개월과 직전 3개월의 20대 카테고리별 completed 매출 비교",
+    "metric": "revenue",
+    "dimensions": [
+      "category",
+      "period"
+    ],
+    "filters": [
+      "20 <= age < 30",
+      "status = completed"
+    ],
+    "date_range": "latest 3 calendar months and prior 3 complete months from max order_date",
+    "comparison": "previous_3_months",
+    "chart_hint": "grouped_bar",
+    "clarification_needed": false,
+    "clarification_question": null
+  },
+  "user_message": null,
+  "insight": {
+    "persona": "marketer",
+    "question": "최근 3개월간 20대 고객의 카테고리별 매출을 직전 3개월과 비교해줘.",
+    "headline": "최근 3개월 20대 매출은 beauty 카테고리가 9,224,189원으로 가장 큽니다.",
+    "key_findings": [
+      "현재 기간 매출 1위 카테고리는 beauty입니다.",
+      "직전 기간 대비 증가율은 beauty가 1,729.51%로 가장 큽니다."
+    ],
+    "chart_spec": {
+      "chart_type": "grouped_bar",
+      "x": "category",
+      "y": "revenue",
+      "series": "period",
+      "title": "20대 카테고리별 매출 기간 비교",
+      "x_label": "카테고리",
+      "y_label": "매출(KRW)",
+      "sort": "none",
+      "top_n": 10
+    },
+    "applied_context": [
+      "latest 3 calendar months and prior 3 complete months from max order_date",
+      "20 <= age < 30",
+      "completed 상태 주문의 sales_amount 합계(취소·환불 제외)"
+    ],
+    "next_analysis_question": "beauty 매출 증가가 특정 채널이나 캠페인에 집중됐는지 보시겠어요?",
+    "caveats": [
+      "Mock 데이터의 관찰 차이며 인과를 의미하지 않습니다."
+    ],
+    "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+    "source_tables": [
+      "orders",
+      "products",
+      "users"
+    ],
+    "row_count": 10,
+    "data_as_of": "2026-09-15"
+  },
+  "query": {
+    "sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+    "columns": [
+      "category",
+      "period",
+      "revenue"
+    ],
+    "rows": [
+      {
+        "category": "beauty",
+        "period": "current",
+        "revenue": "9224188.55"
+      },
+      {
+        "category": "beauty",
+        "period": "previous",
+        "revenue": "504190.14"
+      },
+      {
+        "category": "digital",
+        "period": "current",
+        "revenue": "7579629.28"
+      },
+      {
+        "category": "digital",
+        "period": "previous",
+        "revenue": "3310234.51"
+      },
+      {
+        "category": "fashion",
+        "period": "current",
+        "revenue": "6646278.87"
+      },
+      {
+        "category": "fashion",
+        "period": "previous",
+        "revenue": "2041277.26"
+      },
+      {
+        "category": "food",
+        "period": "current",
+        "revenue": "1527011.60"
+      },
+      {
+        "category": "food",
+        "period": "previous",
+        "revenue": "572405.40"
+      },
+      {
+        "category": "living",
+        "period": "current",
+        "revenue": "2878834.71"
+      },
+      {
+        "category": "living",
+        "period": "previous",
+        "revenue": "1087186.25"
+      }
+    ],
+    "source_tables": [
+      "orders",
+      "products",
+      "users"
+    ],
+    "row_count": 10,
+    "data_as_of": "2026-09-15",
+    "attempts": 1
+  },
+  "chart_spec": {
+    "chart_type": "grouped_bar",
+    "x": "category",
+    "y": "revenue",
+    "series": "period",
+    "title": "20대 카테고리별 매출 기간 비교",
+    "x_label": "카테고리",
+    "y_label": "매출(KRW)",
+    "sort": "none",
+    "top_n": 10
+  },
+  "trace": [
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "request",
+      "status": "started",
+      "detail": {
+        "persona": "marketer"
+      },
+      "timestamp": "2026-09-22T05:46:00.190281Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "analysis_plan",
+      "status": "success",
+      "detail": {
+        "persona": "marketer",
+        "plan": {
+          "persona": "marketer",
+          "interpreted_question": "최근 3개월과 직전 3개월의 20대 카테고리별 completed 매출 비교",
+          "metric": "revenue",
+          "dimensions": [
+            "category",
+            "period"
+          ],
+          "filters": [
+            "20 <= age < 30",
+            "status = completed"
+          ],
+          "date_range": "latest 3 calendar months and prior 3 complete months from max order_date",
+          "comparison": "previous_3_months",
+          "chart_hint": "grouped_bar",
+          "clarification_needed": false,
+          "clarification_question": null
+        },
+        "elapsed_ms": 0.29
+      },
+      "timestamp": "2026-09-22T05:46:00.190580Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "sql",
+      "status": "success",
+      "detail": {
+        "attempts": 1,
+        "row_count": 10,
+        "source_tables": [
+          "orders",
+          "products",
+          "users"
+        ],
+        "tools_called": [
+          "list_tables",
+          "inspect_schema",
+          "execute_readonly_sql"
+        ],
+        "final_sql": "WITH bounds AS (\n  SELECT\n    MAX(order_date) AS max_date\n  FROM analytics.orders\n), periods AS (\n  SELECT\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '2 MONTHS' AS current_start,\n    max_date,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '5 MONTHS' AS previous_start,\n    CAST(DATE_TRUNC('MONTH', max_date) AS DATE) - INTERVAL '3 MONTHS' AS previous_end\n  FROM bounds\n)\nSELECT\n  p.category,\n  CASE WHEN o.order_date >= periods.current_start THEN 'current' ELSE 'previous' END AS period,\n  SUM(o.sales_amount) AS revenue\nFROM analytics.orders AS o\nJOIN analytics.users AS u\n  ON u.user_id = o.user_id\nJOIN analytics.products AS p\n  ON p.product_id = o.product_id\nCROSS JOIN periods\nWHERE\n  o.status = 'completed'\n  AND u.age >= 20\n  AND u.age < 30\n  AND o.order_date >= periods.previous_start\n  AND o.order_date <= periods.max_date\n  AND (\n    o.order_date < periods.previous_end + INTERVAL '1 DAY'\n    OR o.order_date >= periods.current_start\n  )\nGROUP BY\n  p.category,\n  period\nORDER BY\n  p.category,\n  period\nLIMIT 100",
+        "elapsed_ms": 16.82
+      },
+      "timestamp": "2026-09-22T05:46:00.207407Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "deterministic_analysis",
+      "status": "success",
+      "detail": {
+        "metrics": [
+          {
+            "name": "category_growth:beauty",
+            "value": 1729.51,
+            "formula": "(current - previous) / previous * 100",
+            "unit": "%",
+            "context": {
+              "category": "beauty",
+              "current": 9224188.55,
+              "previous": 504190.14
+            }
+          },
+          {
+            "name": "category_growth:digital",
+            "value": 128.98,
+            "formula": "(current - previous) / previous * 100",
+            "unit": "%",
+            "context": {
+              "category": "digital",
+              "current": 7579629.28,
+              "previous": 3310234.51
+            }
+          },
+          {
+            "name": "category_growth:fashion",
+            "value": 225.59,
+            "formula": "(current - previous) / previous * 100",
+            "unit": "%",
+            "context": {
+              "category": "fashion",
+              "current": 6646278.87,
+              "previous": 2041277.26
+            }
+          },
+          {
+            "name": "category_growth:food",
+            "value": 166.77,
+            "formula": "(current - previous) / previous * 100",
+            "unit": "%",
+            "context": {
+              "category": "food",
+              "current": 1527011.6,
+              "previous": 572405.4
+            }
+          },
+          {
+            "name": "category_growth:living",
+            "value": 164.8,
+            "formula": "(current - previous) / previous * 100",
+            "unit": "%",
+            "context": {
+              "category": "living",
+              "current": 2878834.71,
+              "previous": 1087186.25
+            }
+          },
+          {
+            "name": "top_current_category",
+            "value": "beauty",
+            "formula": "ARGMAX(current revenue)",
+            "unit": null,
+            "context": {
+              "category": "beauty",
+              "revenue": 9224188.55
+            }
+          }
+        ]
+      },
+      "timestamp": "2026-09-22T05:46:00.209801Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "chart",
+      "status": "success",
+      "detail": {
+        "chart_spec": {
+          "chart_type": "grouped_bar",
+          "x": "category",
+          "y": "revenue",
+          "series": "period",
+          "title": "20대 카테고리별 매출 기간 비교",
+          "x_label": "카테고리",
+          "y_label": "매출(KRW)",
+          "sort": "none",
+          "top_n": 10
+        },
+        "fallback": null
+      },
+      "timestamp": "2026-09-22T05:46:00.222124Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "insight",
+      "status": "success",
+      "detail": {
+        "elapsed_ms": 31.87
+      },
+      "timestamp": "2026-09-22T05:46:00.222152Z"
+    },
+    {
+      "request_id": "8d2e9a7d8c954f8c92238438923848cf",
+      "stage": "request",
+      "status": "success",
+      "detail": {
+        "outcome": "success",
+        "elapsed_ms": 31.87
+      },
+      "timestamp": "2026-09-22T05:46:00.222154Z"
+    }
+  ]
+}

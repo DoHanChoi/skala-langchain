@@ -1,0 +1,11 @@
+RoleLens SQL safety verification
+select_allowlisted: allowed | row_limit_present=True
+select_star: blocked | SELECT *는 허용되지 않습니다. 필요한 컬럼을 명시하세요.
+multiple_statements: blocked | 정확히 하나의 SQL statement만 허용됩니다.
+delete: blocked | SELECT 또는 WITH ... SELECT 조회만 허용됩니다.
+system_catalog: blocked | 허용되지 않은 스키마입니다: pg_catalog
+outside_allowlist: blocked | 허용되지 않은 스키마입니다: public
+write_cte: blocked | DDL, DML, COPY, 권한 변경, lock 명령은 허용되지 않습니다.
+readonly_delete: blocked_by_postgresql
+readonly_create: blocked_by_postgresql
+row_cap: returned=100 expected_max=100

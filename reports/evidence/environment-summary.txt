@@ -1,0 +1,19 @@
+RoleLens environment verification
+collected_at=2026-09-22T14:45:45+09:00
+platform=macOS-26.6.2-arm64-arm-64bit
+python=3.11.15
+postgresql=16.15
+migration=20260921_0001
+container=rolelens-db-1 healthy (verified before collection)
+model_provider=openai
+model_id=gpt-4o-mini
+model_key_configured=True
+data_as_of=2026-09-15
+random_seed=42
+max_query_rows=100
+statement_timeout_ms=10000
+table_counts={"campaigns": 84, "monthly_targets": 42, "orders": 3907, "products": 25, "user_events": 5203, "users": 1200}
+order_date_range=2025-01-09..2026-09-15
+order_status_counts={"cancelled": 172, "completed": 3606, "refunded": 129}
+packages={"alembic": "1.20.0", "gradio": "6.28.0", "langchain-core": "1.6.3", "langchain-openai": "1.6.2", "pytest": "9.1.1", "rolelens": "0.1.0", "sqlalchemy": "2.0.54", "sqlglot": "28.10.1"}
+secret_values_recorded=false
