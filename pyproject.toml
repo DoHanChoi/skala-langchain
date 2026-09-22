@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rolelens"
+version = "0.1.0"
+description = "Persona-aware, evidence-grounded commerce analytics with LangChain and PostgreSQL"
+readme = "README.md"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+  "alembic>=1.16,<2",
+  "gradio>=5,<7",
+  "langchain-core==1.6.3",
+  "langchain-openai==1.6.2",
+  "matplotlib>=3.9,<4",
+  "pandas>=2.2,<4",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.10,<3",
+  "python-dotenv>=1.1,<2",
+  "seaborn>=0.13,<1",
+  "SQLAlchemy>=2.0,<3",
+  "sqlglot>=27,<29",
+]
+
+[project.optional-dependencies]
+dev = [
+  "ipykernel>=6.29,<8",
+  "nbclient>=0.10,<1",
+  "nbformat>=5.10,<6",
+  "pytest>=8.4,<10",
+  "pytest-cov>=6,<8",
+]
+
+[project.scripts]
+rolelens = "rolelens.ui.gradio_app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rolelens"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+markers = [
+  "integration: requires the RoleLens PostgreSQL database",
+  "e2e: end-to-end service or UI smoke test",
+]
+
+[tool.coverage.run]
+source = ["rolelens"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
